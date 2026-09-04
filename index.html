@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LIFECOUNT — See your time. Use it well.</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ============================================================
+     ONBOARDING
+============================================================ -->
+<div id="onboarding-screen" class="onboarding">
+  <div class="onboarding__inner">
+    <p class="onboarding__mark">LIFECOUNT</p>
+    <h1 class="onboarding__headline">Your time is moving.<br>Make it visible.</h1>
+    <p class="onboarding__sub">Visualize the life horizon you choose — in years, days, hours, minutes and seconds.</p>
+
+    <form id="onboarding-form" class="onboarding__form" novalidate>
+      <div class="field">
+        <label for="ob-dob">Date of birth</label>
+        <input type="date" id="ob-dob" name="dob" required>
+      </div>
+
+      <div class="field">
+        <label for="ob-horizon">Life horizon</label>
+        <select id="ob-horizon" name="horizon">
+          <option value="60">60 years</option>
+          <option value="70">70 years</option>
+          <option value="80">80 years</option>
+          <option value="90">90 years</option>
+          <option value="custom">Custom</option>
+        </select>
+      </div>
+
+      <div class="field" id="ob-custom-field" hidden>
+        <label for="ob-custom">Custom horizon (years)</label>
+        <input type="number" id="ob-custom" name="custom" min="1" max="120" placeholder="e.g. 85">
+      </div>
+
+      <div class="field">
+        <label for="ob-name">Display name <span class="optional">(optional)</span></label>
+        <input type="text" id="ob-name" name="name" placeholder="How should we greet you?" maxlength="40">
+      </div>
+
+      <div id="ob-preview" class="onboarding__preview" hidden>
+        <div class="onboarding__preview-row">
+          <span>Your horizon date</span>
+          <strong id="ob-preview-horizon">—</strong>
+        </div>
+        <div class="onboarding__preview-row">
+          <span>Current age</span>
+          <strong id="ob-preview-age">—</strong>
+        </div>
+      </div>
+
+      <p id="ob-error" class="field-error" hidden></p>
+
+      <button type="submit" class="btn btn--primary btn--block">Enter LIFECOUNT →</button>
+    </form>
+
+    <p class="onboarding__footnote">Your data stays in this browser in V1. Your horizon is a personal planning assumption, not a prediction of death.</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     APP SHELL
+============================================================ -->
+<div id="app" class="app" hidden>
+
+  <!-- Mobile top bar -->
+  <header class="topbar">
+    <button id="menu-toggle" class="icon-btn" aria-label="Open navigation" aria-expanded="false" aria-controls="sidebar">
+      <span class="hamburger"><span></span><span></span><span></span></span>
+    </button>
+    <span class="topbar__mark">LIFECOUNT</span>
+    <button id="theme-toggle-mobile" class="icon-btn" aria-label="Toggle theme">
+      <span class="theme-icon" aria-hidden="true">◐</span>
+    </button>
+  </header>
+
+  <div id="sidebar-overlay" class="sidebar-overlay" hidden></div>
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar__brand">
+      <span class="sidebar__mark">LIFECOUNT</span>
+      <span class="sidebar__tag">See your time. Use it well.</span>
+    </div>
+
+    <nav class="sidebar__nav" aria-label="Main navigation">
+      <button class="nav-link" data-view="dashboard" aria-current="page">
+        <span class="nav-link__icon" aria-hidden="true">●</span>Dashboard
+      </button>
+      <button class="nav-link" data-view="clock">
+        <span class="nav-link__icon" aria-hidden="true">◷</span>Life Clock
+      </button>
+      <button class="nav-link" data-view="timeline">
+        <span class="nav-link__icon" aria-hidden="true">―</span>Timeline
+      </button>
+      <button class="nav-link" data-view="perspective">
+        <span class="nav-link__icon" aria-hidden="true">◱</span>Perspective
+      </button>
+      <button class="nav-link" data-view="goals">
+        <span class="nav-link__icon" aria-hidden="true">◈</span>Goals
+      </button>
+      <button class="nav-link" data-view="milestones">
+        <span class="nav-link__icon" aria-hidden="true">◆</span>Milestones
+      </button>
+      <button class="nav-link" data-view="settings">
+        <span class="nav-link__icon" aria-hidden="true">⚙</span>Settings
+      </button>
+    </nav>
+
+    <div class="sidebar__footer">
+      <button id="theme-toggle-desktop" class="theme-switch" aria-label="Toggle theme">
+        <span class="theme-icon" aria-hidden="true">◐</span><span id="theme-label">Dark</span>
+      </button>
+      <p class="sidebar__status"><span class="status-dot" aria-hidden="true"></span>Local mode</p>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section id="view-dashboard" class="view">
+      <header class="view-header">
+        <p class="view-header__eyebrow">Your life</p>
+        <h1 id="dash-greeting" class="view-header__title">Good afternoon.</h1>
+        <p class="view-header__sub">Here's your life, in perspective.</p>
+      </header>
+
+      <div class="grid grid--main">
+        <article class="card card--life">
+          <div class="card--life__age">
+            <p class="card__label">Current age</p>
+            <p class="big-number"><span id="dash-age-years">0</span> years</p>
+            <p class="big-number-sub"><span id="dash-age-months">0</span> months, <span id="dash-age-days">0</span> days</p>
+            <p class="muted" id="dash-born-on">Born —</p>
+          </div>
+          <div class="card--life__ring">
+            <div class="ring" id="dash-ring">
+              <svg viewBox="0 0 160 160" width="160" height="160" aria-hidden="true">
+                <circle class="ring__track" cx="80" cy="80" r="70"></circle>
+                <circle class="ring__progress" id="dash-ring-progress" cx="80" cy="80" r="70"></circle>
+              </svg>
+              <div class="ring__label">
+                <span id="dash-ring-percent">0%</span>
+                <span class="ring__caption">lived</span>
+              </div>
+            </div>
+          </div>
+          <div class="card--life__horizon">
+            <p class="card__label">Your chosen horizon</p>
+            <p class="mid-number"><span id="dash-horizon-years">60</span>-year horizon</p>
+            <p class="muted" id="dash-horizon-date">—</p>
+            <p class="muted small"><span id="dash-days-lived">0</span> days lived · approximately <span id="dash-days-remaining">0</span> days remaining</p>
+          </div>
+        </article>
+      </div>
+
+      <div class="grid grid--countdown">
+        <article class="card card--countdown">
+          <p class="card__label">Time remaining</p>
+          <div class="countdown countdown--lg">
+            <div class="countdown__unit"><span id="cd-days" class="countdown__value">0</span><span class="countdown__tag">days</span></div>
+            <div class="countdown__unit"><span id="cd-hours" class="countdown__value">00</span><span class="countdown__tag">hours</span></div>
+            <div class="countdown__unit"><span id="cd-minutes" class="countdown__value">00</span><span class="countdown__tag">minutes</span></div>
+            <div class="countdown__unit"><span id="cd-seconds" class="countdown__value">00</span><span class="countdown__tag">seconds</span></div>
+          </div>
+          <p class="muted small">Total seconds remaining: <span id="cd-total-seconds">0</span></p>
+        </article>
+      </div>
+
+      <div class="grid grid--stats">
+        <article class="card stat-card">
+          <p class="card__label">Time lived</p>
+          <p class="mid-number"><span id="stat-days-lived">0</span> days</p>
+          <p class="muted small"><span id="stat-seconds-lived">0</span> seconds</p>
+        </article>
+        <article class="card stat-card">
+          <p class="card__label">This year</p>
+          <p class="mid-number"><span id="stat-year-percent">0%</span></p>
+          <p class="muted small"><span id="stat-year-days-passed">0</span> days passed · <span id="stat-year-days-remaining">0</span> remaining</p>
+        </article>
+        <article class="card stat-card">
+          <p class="card__label">Today</p>
+          <p class="mid-number"><span id="stat-today-percent">0%</span></p>
+          <p class="muted small" id="stat-today-time">—</p>
+        </article>
+        <article class="card stat-card">
+          <p class="card__label">Next birthday</p>
+          <p class="mid-number"><span id="stat-birthday-days">0</span> days</p>
+          <p class="muted small" id="stat-birthday-date">—</p>
+        </article>
+      </div>
+
+      <article class="card card--progress">
+        <p class="card__label">Life progress</p>
+        <div class="progress-bar-lg">
+          <div class="progress-bar-lg__fill" id="dash-progress-fill"></div>
+        </div>
+        <div class="progress-bar-lg__meta">
+          <span id="dash-progress-percent">0% lived</span>
+          <span id="dash-progress-horizon">60-year horizon</span>
+          <span id="dash-progress-remaining">0% remaining</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- ===================== LIFE CLOCK ===================== -->
+    <section id="view-clock" class="view" hidden>
+      <header class="view-header">
+        <p class="view-header__eyebrow">Life clock</p>
+        <h1 class="view-header__title">Every second is real.</h1>
+        <p class="view-header__sub">The countdown is calculated from the actual current time.</p>
+      </header>
+
+      <article class="card card--clock-hero">
+        <div class="countdown countdown--hero">
+          <div class="countdown__unit"><span id="clock-days" class="countdown__value">0</span><span class="countdown__tag">days</span></div>
+          <div class="countdown__unit"><span id="clock-hours" class="countdown__value">00</span><span class="countdown__tag">hours</span></div>
+          <div class="countdown__unit"><span id="clock-minutes" class="countdown__value">00</span><span class="countdown__tag">minutes</span></div>
+          <div class="countdown__unit"><span id="clock-seconds" class="countdown__value">00</span><span class="countdown__tag">seconds</span></div>
+        </div>
+        <p class="muted" id="clock-horizon-text">Your horizon ends —.</p>
+      </article>
+
+      <div class="grid grid--stats">
+        <article class="card stat-card">
+          <p class="card__label">Seconds lived</p>
+          <p class="mid-number" id="clock-seconds-lived">0</p>
+        </article>
+        <article class="card stat-card">
+          <p class="card__label">Seconds remaining</p>
+          <p class="mid-number" id="clock-seconds-remaining">0</p>
+        </article>
+        <article class="card stat-card">
+          <p class="card__label">Total horizon</p>
+          <p class="mid-number" id="clock-total-horizon">0 years</p>
+        </article>
+        <article class="card stat-card">
+          <p class="card__label">Progress</p>
+          <p class="mid-number" id="clock-progress">0%</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===================== TIMELINE ===================== -->
+    <section id="view-timeline" class="view" hidden>
+      <header class="view-header">
+        <p class="view-header__eyebrow">Timeline</p>
+        <h1 class="view-header__title">The shape of a life.</h1>
+        <p class="view-header__sub">Key ages, mapped across your chosen horizon.</p>
+      </header>
+
+      <article class="card">
+        <div class="timeline" id="timeline-track"></div>
+      </article>
+
+      <div class="grid grid--milestones" id="timeline-cards"></div>
+    </section>
+
+    <!-- ===================== PERSPECTIVE ===================== -->
+    <section id="view-perspective" class="view" hidden>
+      <header class="view-header">
+        <p class="view-header__eyebrow">Perspective</p>
+        <h1 class="view-header__title">How much time is my life?</h1>
+        <p class="view-header__sub">The same horizon, measured three ways.</p>
+      </header>
+
+      <div class="grid grid--perspective">
+        <article class="card panel">
+          <p class="card__label">Total chosen horizon</p>
+          <dl class="stat-list" id="persp-horizon"></dl>
+        </article>
+        <article class="card panel">
+          <p class="card__label">Time lived</p>
+          <dl class="stat-list" id="persp-lived"></dl>
+        </article>
+        <article class="card panel">
+          <p class="card__label">Time remaining</p>
+          <dl class="stat-list" id="persp-remaining"></dl>
+        </article>
+      </div>
+
+      <article class="card card--year-compress">
+        <p class="card__label">Life as a year</p>
+        <p class="muted">If your entire chosen lifetime were compressed into one year — January 1st as birth, December 31st as horizon —</p>
+        <div class="year-bar">
+          <div class="year-bar__marker" id="year-bar-marker"></div>
+        </div>
+        <p class="year-compress__result">You are around <strong id="year-compress-date">—</strong> in your compressed year.</p>
+      </article>
+    </section>
+
+    <!-- ===================== GOALS ===================== -->
+    <section id="view-goals" class="view" hidden>
+      <header class="view-header">
+        <p class="view-header__eyebrow">Goals</p>
+        <h1 class="view-header__title">Give your time a direction.</h1>
+        <p class="view-header__sub">Track what you're building with the time you have.</p>
+      </header>
+
+      <button id="add-goal-btn" class="btn btn--primary">+ Add goal</button>
+
+      <div class="grid grid--cards" id="goals-list"></div>
+      <p id="goals-empty" class="empty-state" hidden>
+        <strong>No goals yet.</strong>
+        Your time is waiting for a direction. Add your first goal.
+      </p>
+    </section>
+
+    <!-- ===================== MILESTONES ===================== -->
+    <section id="view-milestones" class="view" hidden>
+      <header class="view-header">
+        <p class="view-header__eyebrow">Milestones</p>
+        <h1 class="view-header__title">The moments that mark it.</h1>
+        <p class="view-header__sub">Personal dates worth tracking against your horizon.</p>
+      </header>
+
+      <button id="add-milestone-btn" class="btn btn--primary">+ Add milestone</button>
+
+      <div class="grid grid--cards" id="milestones-list"></div>
+      <p id="milestones-empty" class="empty-state" hidden>
+        <strong>No custom milestones yet.</strong>
+        Add the dates that matter to you.
+      </p>
+    </section>
+
+    <!-- ===================== SETTINGS ===================== -->
+    <section id="view-settings" class="view" hidden>
+      <header class="view-header">
+        <p class="view-header__eyebrow">Settings</p>
+        <h1 class="view-header__title">Your profile.</h1>
+        <p class="view-header__sub">Adjust the numbers everything else is built from.</p>
+      </header>
+
+      <article class="card">
+        <form id="settings-form" class="settings-form" novalidate>
+          <div class="field">
+            <label for="set-name">Display name</label>
+            <input type="text" id="set-name" maxlength="40">
+          </div>
+          <div class="field">
+            <label for="set-dob">Date of birth</label>
+            <input type="date" id="set-dob" required>
+          </div>
+          <div class="field">
+            <label for="set-horizon">Life horizon</label>
+            <select id="set-horizon">
+              <option value="60">60 years</option>
+              <option value="70">70 years</option>
+              <option value="80">80 years</option>
+              <option value="90">90 years</option>
+              <option value="custom">Custom</option>
+            </select>
+          </div>
+          <div class="field" id="set-custom-field" hidden>
+            <label for="set-custom">Custom horizon (years)</label>
+            <input type="number" id="set-custom" min="1" max="120">
+          </div>
+          <p id="set-error" class="field-error" hidden></p>
+          <button type="submit" class="btn btn--primary">Save changes</button>
+        </form>
+      </article>
+
+      <article class="card card--danger">
+        <p class="card__label">Reset LIFECOUNT</p>
+        <p class="muted">Deletes your profile, goals and milestones from this browser. This cannot be undone.</p>
+        <button id="reset-btn" class="btn btn--danger">Reset LIFECOUNT</button>
+      </article>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============================================================
+     MODALS
+============================================================ -->
+<div id="modal-overlay" class="modal-overlay" hidden>
+
+  <div id="goal-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title" hidden>
+    <div class="modal__head">
+      <h2 id="goal-modal-title">Add goal</h2>
+      <button class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
+    </div>
+    <form id="goal-form" class="modal-form" novalidate>
+      <div class="field">
+        <label for="goal-title">Goal title</label>
+        <input type="text" id="goal-title" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="goal-progress">Progress: <span id="goal-progress-value">0%</span></label>
+        <input type="range" id="goal-progress" min="0" max="100" value="0">
+      </div>
+      <div class="field">
+        <label for="goal-target">Target date <span class="optional">(optional)</span></label>
+        <input type="date" id="goal-target">
+      </div>
+      <div class="modal-form__actions">
+        <button type="button" class="btn btn--ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn btn--primary">Save goal</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="milestone-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="milestone-modal-title" hidden>
+    <div class="modal__head">
+      <h2 id="milestone-modal-title">Add milestone</h2>
+      <button class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
+    </div>
+    <form id="milestone-form" class="modal-form" novalidate>
+      <div class="field">
+        <label for="milestone-title">Milestone title</label>
+        <input type="text" id="milestone-title" required maxlength="80">
+      </div>
+      <div class="field">
+        <label for="milestone-date">Date</label>
+        <input type="date" id="milestone-date" required>
+      </div>
+      <div class="field">
+        <label for="milestone-desc">Description <span class="optional">(optional)</span></label>
+        <textarea id="milestone-desc" rows="3" maxlength="200"></textarea>
+      </div>
+      <div class="modal-form__actions">
+        <button type="button" class="btn btn--ghost" data-close-modal>Cancel</button>
+        <button type="submit" class="btn btn--primary">Save milestone</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="reset-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="reset-modal-title" hidden>
+    <div class="modal__head">
+      <h2 id="reset-modal-title">Reset LIFECOUNT?</h2>
+      <button class="icon-btn modal__close" data-close-modal aria-label="Close">✕</button>
+    </div>
+    <p class="muted">This permanently deletes your profile, goals and milestones from this browser.</p>
+    <div class="modal-form__actions">
+      <button type="button" class="btn btn--ghost" data-close-modal>Cancel</button>
+      <button type="button" id="reset-confirm-btn" class="btn btn--danger">Delete everything</button>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
